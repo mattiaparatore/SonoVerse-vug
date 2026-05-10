@@ -1,41 +1,24 @@
 @echo off
-REM === Vai nella cartella in cui si trova questo script ===
+
+REM === Vai nella cartella dello script ===
 cd /d "%~dp0"
 
-REM === Prima sincronizza GitHub con il PC ===
+REM === Prima sincronizza con GitHub ===
 git pull --rebase origin main
-
-REM === Se il pull fallisce, prova a tenere la versione locale del glossario ===
-IF ERRORLEVEL 1 (
-    echo Conflitto rilevato. Tengo la versione locale di glossary.html...
-    git checkout --ours glossary.html
-    git add glossary.html
-    git rebase --continue
-)
 
 REM === Genera glossary.html ===
 python generate_glossary_html.py
 
-REM === Aggiungi i file aggiornati ===
-git add SonoVerse.xlsx glossary.html update_and_publish_glossary.bat
+REM === Aggiungi file ===
+git add SonoVerse.xlsx glossary.html
 
-REM === Fai commit solo se necessario ===
-git commit -m "Aggiorna Excel e HTML" || echo Nessuna modifica rilevante trovata
+REM === Commit ===
+git commit -m "Aggiorna glossary"
 
-REM === Sincronizza di nuovo prima del push ===
-git pull --rebase origin main
-
-IF ERRORLEVEL 1 (
-    echo Conflitto rilevato. Tengo la versione locale di glossary.html...
-    git checkout --ours glossary.html
-    git add glossary.html
-    git rebase --continue
-)
-
-REM === Esegui push ===
+REM === Push ===
 git push origin main
 
-REM === Apri glossario in locale ===
+REM === Apri glossario locale ===
 start glossary.html
 
 pause
