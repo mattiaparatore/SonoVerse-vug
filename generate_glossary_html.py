@@ -95,7 +95,7 @@ function searchGlossary() {
 
     html += "</body></html>"
 
-    with open("glossary.html", "w", encoding="utf-8") as f:
+    with open("glossary.html", "w", encoding="utf-8", errors="ignore") as f:
         f.write(html)
 
 if __name__ == "__main__":
