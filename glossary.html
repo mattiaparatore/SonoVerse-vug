@@ -120,11 +120,11 @@ function updateViewMode() {
     if (mode === "alphabetical") {
         alphaView.classList.remove("hidden");
         visualView.classList.add("hidden");
-        viewNote.textContent = "Alphabetical list: findings are grouped by organ and sorted alphabetically.";
+        viewNote.textContent = "Findings are grouped by organ and sorted alphabetically.";
     } else {
         alphaView.classList.add("hidden");
         visualView.classList.remove("hidden");
-        viewNote.textContent = "Visual cards: findings are grouped by organ and sorted by YouTube publication date.";
+        viewNote.textContent = "Findings are grouped by organ and sorted by publication date.";
     }
 
     searchGlossary();
