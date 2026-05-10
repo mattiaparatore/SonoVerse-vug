@@ -11,41 +11,153 @@ h1 { margin: 0; font-size: 2.2em; }
 .subtitle { font-size: 1.2em; color: #cce0ff; margin: 0; }
 .logo { max-width: 100px; width: 100%; height: auto; }
 .title-block { text-align: left; }
-#searchInput, #organSelect {
-    padding: 10px; width: 100%; font-size: 1em; margin: 20px 0;
+
+.controls { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+#searchInput, #organSelect, #viewMode {
+    padding: 10px; width: 100%; font-size: 1em; margin: 8px 0;
     border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;
 }
-.section { margin-bottom: 40px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto; }
+
+.view-note {
+    color: #555;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.section { margin-bottom: 45px; text-align: left; max-width: 1000px; margin-left: auto; margin-right: auto; padding: 0 15px; }
 h2 { color: #003366; margin-top: 30px; }
+
 ul { list-style: none; padding-left: 0; }
-li { margin-bottom: 10px; }
-a { text-decoration: none; color: #0066cc; }
-.coming { color: gray; }
+li { margin-bottom: 10px; font-size: 1em; }
+li a { text-decoration: none; color: #0066cc; }
+li a:hover { text-decoration: underline; }
+.coming-list { color: gray; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+
+.card a { text-decoration: none; color: inherit; display: block; }
+
+.thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #d9e2ec;
+}
+
+.card-content { padding: 12px; }
+
+.term {
+    font-weight: bold;
+    color: #003366;
+    font-size: 1em;
+    margin-bottom: 5px;
+}
+
+.variant {
+    color: #444;
+    font-size: 0.9em;
+}
+
+.date {
+    color: #0066cc;
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+.note {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 6px;
+}
+
+.coming {
+    opacity: 0.65;
+}
+
+.placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #d9e2ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 0.9em;
+}
+
+.hidden { display: none; }
+
 @media (max-width: 768px) {
     h2 { font-size: 1.2em; }
     li { font-size: 0.95em; }
 }
 </style>
+
 <script>
+function updateViewMode() {
+    var mode = document.getElementById("viewMode").value;
+    var alphaView = document.getElementById("alphabeticalView");
+    var visualView = document.getElementById("visualView");
+    var viewNote = document.getElementById("viewNote");
+
+    if (mode === "alphabetical") {
+        alphaView.classList.remove("hidden");
+        visualView.classList.add("hidden");
+        viewNote.textContent = "Alphabetical list: findings are grouped by organ and sorted alphabetically.";
+    } else {
+        alphaView.classList.add("hidden");
+        visualView.classList.remove("hidden");
+        viewNote.textContent = "Visual cards: findings are grouped by organ and sorted by YouTube publication date.";
+    }
+
+    searchGlossary();
+}
+
 function searchGlossary() {
     var input = document.getElementById("searchInput").value.toLowerCase();
     var selectedOrgan = document.getElementById("organSelect").value;
-    var sections = document.querySelectorAll(".section");
+    var activeView = document.querySelector(".view-container:not(.hidden)");
+    var sections = activeView.querySelectorAll(".section");
+
     sections.forEach(function(section) {
         var organ = section.getAttribute("data-organ");
-        var items = section.querySelectorAll("li");
+        var items = section.querySelectorAll(".search-item");
         var sectionVisible = false;
+
         items.forEach(function(item) {
             var text = item.textContent.toLowerCase();
             var match = (text.includes(input) && (selectedOrgan === "all" || selectedOrgan === organ));
             item.style.display = match ? "" : "none";
             if (match) sectionVisible = true;
         });
+
         section.style.display = sectionVisible ? "" : "none";
     });
 }
+
+window.onload = function() {
+    updateViewMode();
+};
 </script>
 </head>
+
 <body>
 <header>
     <img src="sonoverse_icon_only1.png" alt="SonoVerse Logo" class="logo">
@@ -54,9 +166,643 @@ function searchGlossary() {
         <p class="subtitle">Visual Ultrasound Glossary</p>
     </div>
 </header>
+
+<div class="controls">
+<select id="viewMode" onchange="updateViewMode()">
+<option value="alphabetical">Alphabetical list</option>
+<option value="visual">Visual cards with YouTube previews</option>
+</select>
+
+<div id="viewNote" class="view-note"></div>
+
 <select id="organSelect" onchange="searchGlossary()">
 <option value="all">Filter by organ (All)</option>
 <option value='Adrenal gland'>Adrenal gland</option><option value='Bowel'>Bowel</option><option value='Gallbladder and biliary tract'>Gallbladder and biliary tract</option><option value='Kidney'>Kidney</option><option value='Liver'>Liver</option><option value='Liver vasculature'>Liver vasculature</option><option value='Pancreas'>Pancreas</option><option value='Parathyroid'>Parathyroid</option><option value='Spleen'>Spleen</option><option value='Thyroid'>Thyroid</option>
 </select>
 <input type="text" id="searchInput" onkeyup="searchGlossary()" placeholder="Search for terms...">
-<div class='section' data-organ='Adrenal gland'><h2>Adrenal gland</h2><ul><li><a href='https://youtu.be/xBfd04F4Ni8 ' target='_blank'>Adrenal adenoma – Clip 1 B-mode</a></li></ul></div><div class='section' data-organ='Bowel'><h2>Bowel</h2><ul><li><a href='https://youtu.be/kdZO1IPuOIw' target='_blank'>Appendiceal mucocele – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/Jwjqn1j32FY' target='_blank'>Superior Mesenteric Artery (SMA) Syndrome – Clip 1 B-mode</a></li></ul></div><div class='section' data-organ='Gallbladder and biliary tract'><h2>Gallbladder and biliary tract</h2><ul><li><a href='https://youtu.be/ZXwd0gwHEkQ' target='_blank'>Adenomyoma – Clip 1 B-mode + Color + microV</a></li><li><a href='https://youtu.be/zxTC0YBY2RY ' target='_blank'>Adenomyomatosis  – Clip 1 B-mode</a></li><li><a href='https://youtu.be/K2Wbg7BgXy4' target='_blank'>Aerobilia (Pneumobilia) – Clip 1 B-mode</a></li><li><a href='https://youtu.be/OvAeGcBZ--s' target='_blank'>Cholesterol Crystals in Intrahepatic Bile Ducts – Clip 1 B-mode</a></li><li><a href='https://youtu.be/mnDuOgdSpLA' target='_blank'>Gallstone (Large) + Adenomyoma  – Clip 1 B-mode</a></li></ul></div><div class='section' data-organ='Kidney'><h2>Kidney</h2><ul><li><a href='https://youtu.be/wBfm-OnoUD4' target='_blank'>Horseshoe Kidney – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/b5oGdfLmcIA' target='_blank'>Renal angiomyolipomas – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/2kRZcpi70Aw' target='_blank'>Renal stone – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/iPGqKJn8NPs' target='_blank'>Severe bilateral hydronephrosis – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/dGOyCO-pP4g' target='_blank'>Solid Renal Mass – Clip 1 B-mode + Color</a></li></ul></div><div class='section' data-organ='Liver'><h2>Liver</h2><ul><li><a href='https://youtu.be/131PwPyQ9TQ' target='_blank'>Atypical Hemangioma - Hyperechoic with Central Hypoechoic Core – Clip 1 B-mode</a></li><li><a href='https://youtu.be/knQhiK4Y7kY' target='_blank'>Biliary Hamartomas (von Meyenburg Complexes) – Clip 1 B-mode </a></li><li><a href='https://youtu.be/RhSUFLTmTl4' target='_blank'>Cavernous Hemangioma - Iso-Hyperechoic, Trilobulated – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/rg0sFcu0rVQ' target='_blank'>Focal nodular hyperplasia - Isoechoic – Clip 1 B-mode + Color + microV</a></li><li><a href='https://youtu.be/PGVchRMB22g' target='_blank'>Focal nodular hyperplasia - Isoechoic – Clip 2 B-mode + Color + microV</a></li><li><a href='https://youtu.be/91M82AIMyu0 ' target='_blank'>HNF1α-mutated hepatocellular adenoma - Hyperechoic – Clip 1 B-mode + Color </a></li><li><a href='https://youtu.be/15o_Km86IzM ' target='_blank'>Hepatocellular carcinoma - Heterogeneous nodular lesions  – Clip 1 B-mode + Color + microV</a></li><li><a href='https://youtu.be/4V95TgIMrbE' target='_blank'>Hepatocellular carcinoma with intra-lesional air (superinfected HCC) – Clip 1 B-mode</a></li><li><a href='https://youtu.be/m_H0po7LaIo' target='_blank'>Liver Steatosis with Geographic Pattern – Clip 1 B-mode</a></li><li><a href='https://youtu.be/kaROVVBl9Bc' target='_blank'>Perihepatic reactive lymph nodes – Clip 1-Bmode</a></li></ul></div><div class='section' data-organ='Liver vasculature'><h2>Liver vasculature</h2><ul><li><a href='https://youtu.be/WBORcFlYQZE' target='_blank'>Budd-Chiari syndrome - Intrahepatic collateral veins – Clip 1B-mode + Color</a></li><li><a href='https://youtu.be/ytNgK7wuL_M' target='_blank'>Complete umbilical vein recanalization – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/sRu_NTopG3Y' target='_blank'>Congestive Hepatopathy – Clip 1 B-mode + Color Doppler</a></li><li><a href='https://youtu.be/DjI1kEnzfSQ ' target='_blank'>Portal vein thrombosis – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/A3XUYC74J0o' target='_blank'>Portal vein thrombosis – Clip 2 B-mode + Color</a></li><li><a href='https://youtu.be/U3ydTsRwxok ' target='_blank'>Spontaneous intrahepatic porto-systemic shunt – Clip 1 B-mode + Color</a></li></ul></div><div class='section' data-organ='Pancreas'><h2>Pancreas</h2><ul><li><a href='https://youtu.be/JvwODCASLYQ ' target='_blank'>Acute necrotizing pancreatitis  – Clip 1 B-mode</a></li><li><a href='https://youtu.be/VJdnjrAAO-4' target='_blank'>Chronic pancreatitis: Wirsung dilatation and parenchymal calcifications – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/pc-vbxSRTbs ' target='_blank'>Neuroendocrine Tumor G1 – Hypoechoic – Clip 1 B-mode + Color + microV</a></li><li><a href='https://youtu.be/aoaF345dsKc' target='_blank'>Pancreatic adenocarcinoma (head/uncinate) – Clip 1 B-mode + Color</a></li><li><a href='https://youtu.be/Axbee4vjNtU' target='_blank'>Stones in the Main Pancreatic Duct (Pancreatolithiasis) – Clip 1 B-mode + Color</a></li></ul></div><div class='section' data-organ='Parathyroid'><h2>Parathyroid</h2><ul><li><a href='https://youtu.be/S45odD2wQOQ' target='_blank'>Adenoma (primary hyperparathyroidism) – Clip 1 B-mode + Color</a></li></ul></div><div class='section' data-organ='Spleen'><h2>Spleen</h2><ul><li><a href='https://youtu.be/_FckFwJwynI ' target='_blank'>Accessory spleen – Clip 1 B-mode</a></li><li><a href='https://youtu.be/nKZNmbVAutI' target='_blank'>Splenic artery aneurysm – Clip 1 B-mode + Color Doppler</a></li><li><a href='https://youtu.be/qushjTAy6XQ ' target='_blank'>Splenic calcification with posterior shadowing – Clip 1 B-mode</a></li></ul></div><div class='section' data-organ='Thyroid'><h2>Thyroid</h2><ul><li><a href='https://youtu.be/z_oaRVxRz5s' target='_blank'>Isoechoic nodule with peripheral calcifications – Clip 1 B-mode + Color</a></li></ul></div></body></html>
+</div>
+<div id="alphabeticalView" class="view-container"><div class='section' data-organ='Adrenal gland'><h2>Adrenal gland</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/xBfd04F4Ni8 " target="_blank">Adrenal adenoma – Clip 1 B-mode</a>
+</li>
+</ul></div><div class='section' data-organ='Bowel'><h2>Bowel</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/kdZO1IPuOIw" target="_blank">Appendiceal mucocele – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/Jwjqn1j32FY" target="_blank">Superior Mesenteric Artery (SMA) Syndrome – Clip 1 B-mode</a>
+</li>
+</ul></div><div class='section' data-organ='Gallbladder and biliary tract'><h2>Gallbladder and biliary tract</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/ZXwd0gwHEkQ" target="_blank">Adenomyoma – Clip 1 B-mode + Color + microV</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/zxTC0YBY2RY " target="_blank">Adenomyomatosis  – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/K2Wbg7BgXy4" target="_blank">Aerobilia (Pneumobilia) – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/OvAeGcBZ--s" target="_blank">Cholesterol Crystals in Intrahepatic Bile Ducts – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/mnDuOgdSpLA" target="_blank">Gallstone (Large) + Adenomyoma  – Clip 1 B-mode</a>
+</li>
+</ul></div><div class='section' data-organ='Kidney'><h2>Kidney</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/wBfm-OnoUD4" target="_blank">Horseshoe Kidney – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/b5oGdfLmcIA" target="_blank">Renal angiomyolipomas – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/2kRZcpi70Aw" target="_blank">Renal stone – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/iPGqKJn8NPs" target="_blank">Severe bilateral hydronephrosis – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/dGOyCO-pP4g" target="_blank">Solid Renal Mass – Clip 1 B-mode + Color</a>
+</li>
+</ul></div><div class='section' data-organ='Liver'><h2>Liver</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/131PwPyQ9TQ" target="_blank">Atypical Hemangioma - Hyperechoic with Central Hypoechoic Core – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/knQhiK4Y7kY" target="_blank">Biliary Hamartomas (von Meyenburg Complexes) – Clip 1 B-mode </a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/RhSUFLTmTl4" target="_blank">Cavernous Hemangioma - Iso-Hyperechoic, Trilobulated – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/rg0sFcu0rVQ" target="_blank">Focal nodular hyperplasia - Isoechoic – Clip 1 B-mode + Color + microV</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/PGVchRMB22g" target="_blank">Focal nodular hyperplasia - Isoechoic – Clip 2 B-mode + Color + microV</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/91M82AIMyu0 " target="_blank">HNF1α-mutated hepatocellular adenoma - Hyperechoic – Clip 1 B-mode + Color </a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/15o_Km86IzM " target="_blank">Hepatocellular carcinoma - Heterogeneous nodular lesions  – Clip 1 B-mode + Color + microV</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/4V95TgIMrbE" target="_blank">Hepatocellular carcinoma with intra-lesional air (superinfected HCC) – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/m_H0po7LaIo" target="_blank">Liver Steatosis with Geographic Pattern – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/kaROVVBl9Bc" target="_blank">Perihepatic reactive lymph nodes – Clip 1-Bmode</a>
+</li>
+</ul></div><div class='section' data-organ='Liver vasculature'><h2>Liver vasculature</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/WBORcFlYQZE" target="_blank">Budd-Chiari syndrome - Intrahepatic collateral veins – Clip 1B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/ytNgK7wuL_M" target="_blank">Complete umbilical vein recanalization – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/sRu_NTopG3Y" target="_blank">Congestive Hepatopathy – Clip 1 B-mode + Color Doppler</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/DjI1kEnzfSQ " target="_blank">Portal vein thrombosis – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/A3XUYC74J0o" target="_blank">Portal vein thrombosis – Clip 2 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/U3ydTsRwxok " target="_blank">Spontaneous intrahepatic porto-systemic shunt – Clip 1 B-mode + Color</a>
+</li>
+</ul></div><div class='section' data-organ='Pancreas'><h2>Pancreas</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/JvwODCASLYQ " target="_blank">Acute necrotizing pancreatitis  – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/VJdnjrAAO-4" target="_blank">Chronic pancreatitis: Wirsung dilatation and parenchymal calcifications – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/pc-vbxSRTbs " target="_blank">Neuroendocrine Tumor G1 – Hypoechoic – Clip 1 B-mode + Color + microV</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/aoaF345dsKc" target="_blank">Pancreatic adenocarcinoma (head/uncinate) – Clip 1 B-mode + Color</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/Axbee4vjNtU" target="_blank">Stones in the Main Pancreatic Duct (Pancreatolithiasis) – Clip 1 B-mode + Color</a>
+</li>
+</ul></div><div class='section' data-organ='Parathyroid'><h2>Parathyroid</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/S45odD2wQOQ" target="_blank">Adenoma (primary hyperparathyroidism) – Clip 1 B-mode + Color</a>
+</li>
+</ul></div><div class='section' data-organ='Spleen'><h2>Spleen</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/_FckFwJwynI " target="_blank">Accessory spleen – Clip 1 B-mode</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/nKZNmbVAutI" target="_blank">Splenic artery aneurysm – Clip 1 B-mode + Color Doppler</a>
+</li>
+
+<li class="search-item">
+<a href="https://youtu.be/qushjTAy6XQ " target="_blank">Splenic calcification with posterior shadowing – Clip 1 B-mode</a>
+</li>
+</ul></div><div class='section' data-organ='Thyroid'><h2>Thyroid</h2><ul>
+<li class="search-item">
+<a href="https://youtu.be/z_oaRVxRz5s" target="_blank">Isoechoic nodule with peripheral calcifications – Clip 1 B-mode + Color</a>
+</li>
+</ul></div></div><div id="visualView" class="view-container hidden"><div class='section' data-organ='Adrenal gland'><h2>Adrenal gland</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/xBfd04F4Ni8 " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/xBfd04F4Ni8/hqdefault.jpg" alt="Adrenal adenoma video preview">
+    <div class="card-content">
+        <div class="term">Adrenal adenoma</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 13 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Bowel'><h2>Bowel</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/kdZO1IPuOIw" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/kdZO1IPuOIw/hqdefault.jpg" alt="Appendiceal mucocele video preview">
+    <div class="card-content">
+        <div class="term">Appendiceal mucocele</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 02 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/Jwjqn1j32FY" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/Jwjqn1j32FY/hqdefault.jpg" alt="Superior Mesenteric Artery (SMA) Syndrome video preview">
+    <div class="card-content">
+        <div class="term">Superior Mesenteric Artery (SMA) Syndrome</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 11 Dec 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Gallbladder and biliary tract'><h2>Gallbladder and biliary tract</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/zxTC0YBY2RY " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/zxTC0YBY2RY/hqdefault.jpg" alt="Adenomyomatosis  video preview">
+    <div class="card-content">
+        <div class="term">Adenomyomatosis </div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 09 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/K2Wbg7BgXy4" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/K2Wbg7BgXy4/hqdefault.jpg" alt="Aerobilia (Pneumobilia) video preview">
+    <div class="card-content">
+        <div class="term">Aerobilia (Pneumobilia)</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 12 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/OvAeGcBZ--s" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/OvAeGcBZ--s/hqdefault.jpg" alt="Cholesterol Crystals in Intrahepatic Bile Ducts video preview">
+    <div class="card-content">
+        <div class="term">Cholesterol Crystals in Intrahepatic Bile Ducts</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 21 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/ZXwd0gwHEkQ" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/ZXwd0gwHEkQ/hqdefault.jpg" alt="Adenomyoma video preview">
+    <div class="card-content">
+        <div class="term">Adenomyoma</div>
+        <div class="variant">Clip 1 B-mode + Color + microV</div>
+        <div class="date">Published: 23 Oct 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/mnDuOgdSpLA" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/mnDuOgdSpLA/hqdefault.jpg" alt="Gallstone (Large) + Adenomyoma  video preview">
+    <div class="card-content">
+        <div class="term">Gallstone (Large) + Adenomyoma </div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 11 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Kidney'><h2>Kidney</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/2kRZcpi70Aw" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/2kRZcpi70Aw/hqdefault.jpg" alt="Renal stone video preview">
+    <div class="card-content">
+        <div class="term">Renal stone</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 03 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/dGOyCO-pP4g" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/dGOyCO-pP4g/hqdefault.jpg" alt="Solid Renal Mass video preview">
+    <div class="card-content">
+        <div class="term">Solid Renal Mass</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 10 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/wBfm-OnoUD4" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/wBfm-OnoUD4/hqdefault.jpg" alt="Horseshoe Kidney video preview">
+    <div class="card-content">
+        <div class="term">Horseshoe Kidney</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 14 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/iPGqKJn8NPs" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/iPGqKJn8NPs/hqdefault.jpg" alt="Severe bilateral hydronephrosis video preview">
+    <div class="card-content">
+        <div class="term">Severe bilateral hydronephrosis</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 28 Oct 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/b5oGdfLmcIA" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/b5oGdfLmcIA/hqdefault.jpg" alt="Renal angiomyolipomas video preview">
+    <div class="card-content">
+        <div class="term">Renal angiomyolipomas</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 09 Dec 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Liver'><h2>Liver</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/rg0sFcu0rVQ" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/rg0sFcu0rVQ/hqdefault.jpg" alt="Focal nodular hyperplasia - Isoechoic video preview">
+    <div class="card-content">
+        <div class="term">Focal nodular hyperplasia - Isoechoic</div>
+        <div class="variant">Clip 1 B-mode + Color + microV</div>
+        <div class="date">Published: 09 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/91M82AIMyu0 " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/91M82AIMyu0/hqdefault.jpg" alt="HNF1α-mutated hepatocellular adenoma - Hyperechoic video preview">
+    <div class="card-content">
+        <div class="term">HNF1α-mutated hepatocellular adenoma - Hyperechoic</div>
+        <div class="variant">Clip 1 B-mode + Color </div>
+        <div class="date">Published: 13 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/15o_Km86IzM " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/15o_Km86IzM/hqdefault.jpg" alt="Hepatocellular carcinoma - Heterogeneous nodular lesions  video preview">
+    <div class="card-content">
+        <div class="term">Hepatocellular carcinoma - Heterogeneous nodular lesions </div>
+        <div class="variant">Clip 1 B-mode + Color + microV</div>
+        <div class="date">Published: 19 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/kaROVVBl9Bc" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/kaROVVBl9Bc/hqdefault.jpg" alt="Perihepatic reactive lymph nodes video preview">
+    <div class="card-content">
+        <div class="term">Perihepatic reactive lymph nodes</div>
+        <div class="variant">Clip 1-Bmode</div>
+        <div class="date">Published: 21 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/RhSUFLTmTl4" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/RhSUFLTmTl4/hqdefault.jpg" alt="Cavernous Hemangioma - Iso-Hyperechoic, Trilobulated video preview">
+    <div class="card-content">
+        <div class="term">Cavernous Hemangioma - Iso-Hyperechoic, Trilobulated</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 30 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/knQhiK4Y7kY" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/knQhiK4Y7kY/hqdefault.jpg" alt="Biliary Hamartomas (von Meyenburg Complexes) video preview">
+    <div class="card-content">
+        <div class="term">Biliary Hamartomas (von Meyenburg Complexes)</div>
+        <div class="variant">Clip 1 B-mode </div>
+        <div class="date">Published: 09 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/m_H0po7LaIo" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/m_H0po7LaIo/hqdefault.jpg" alt="Liver Steatosis with Geographic Pattern video preview">
+    <div class="card-content">
+        <div class="term">Liver Steatosis with Geographic Pattern</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 20 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/131PwPyQ9TQ" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/131PwPyQ9TQ/hqdefault.jpg" alt="Atypical Hemangioma - Hyperechoic with Central Hypoechoic Core video preview">
+    <div class="card-content">
+        <div class="term">Atypical Hemangioma - Hyperechoic with Central Hypoechoic Core</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 08 Jul 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/PGVchRMB22g" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/PGVchRMB22g/hqdefault.jpg" alt="Focal nodular hyperplasia - Isoechoic video preview">
+    <div class="card-content">
+        <div class="term">Focal nodular hyperplasia - Isoechoic</div>
+        <div class="variant">Clip 2 B-mode + Color + microV</div>
+        <div class="date">Published: 19 Oct 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/4V95TgIMrbE" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/4V95TgIMrbE/hqdefault.jpg" alt="Hepatocellular carcinoma with intra-lesional air (superinfected HCC) video preview">
+    <div class="card-content">
+        <div class="term">Hepatocellular carcinoma with intra-lesional air (superinfected HCC)</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 06 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Liver vasculature'><h2>Liver vasculature</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/DjI1kEnzfSQ " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/DjI1kEnzfSQ/hqdefault.jpg" alt="Portal vein thrombosis video preview">
+    <div class="card-content">
+        <div class="term">Portal vein thrombosis</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 15 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/U3ydTsRwxok " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/U3ydTsRwxok/hqdefault.jpg" alt="Spontaneous intrahepatic porto-systemic shunt video preview">
+    <div class="card-content">
+        <div class="term">Spontaneous intrahepatic porto-systemic shunt</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 16 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/sRu_NTopG3Y" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/sRu_NTopG3Y/hqdefault.jpg" alt="Congestive Hepatopathy video preview">
+    <div class="card-content">
+        <div class="term">Congestive Hepatopathy</div>
+        <div class="variant">Clip 1 B-mode + Color Doppler</div>
+        <div class="date">Published: 05 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/A3XUYC74J0o" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/A3XUYC74J0o/hqdefault.jpg" alt="Portal vein thrombosis video preview">
+    <div class="card-content">
+        <div class="term">Portal vein thrombosis</div>
+        <div class="variant">Clip 2 B-mode + Color</div>
+        <div class="date">Published: 07 Jul 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/WBORcFlYQZE" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/WBORcFlYQZE/hqdefault.jpg" alt="Budd-Chiari syndrome - Intrahepatic collateral veins video preview">
+    <div class="card-content">
+        <div class="term">Budd-Chiari syndrome - Intrahepatic collateral veins</div>
+        <div class="variant">Clip 1B-mode + Color</div>
+        <div class="date">Published: 21 Oct 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/ytNgK7wuL_M" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/ytNgK7wuL_M/hqdefault.jpg" alt="Complete umbilical vein recanalization video preview">
+    <div class="card-content">
+        <div class="term">Complete umbilical vein recanalization</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 09 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Pancreas'><h2>Pancreas</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/pc-vbxSRTbs " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/pc-vbxSRTbs/hqdefault.jpg" alt="Neuroendocrine Tumor G1 – Hypoechoic video preview">
+    <div class="card-content">
+        <div class="term">Neuroendocrine Tumor G1 – Hypoechoic</div>
+        <div class="variant">Clip 1 B-mode + Color + microV</div>
+        <div class="date">Published: 13 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/JvwODCASLYQ " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/JvwODCASLYQ/hqdefault.jpg" alt="Acute necrotizing pancreatitis  video preview">
+    <div class="card-content">
+        <div class="term">Acute necrotizing pancreatitis </div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 15 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/Axbee4vjNtU" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/Axbee4vjNtU/hqdefault.jpg" alt="Stones in the Main Pancreatic Duct (Pancreatolithiasis) video preview">
+    <div class="card-content">
+        <div class="term">Stones in the Main Pancreatic Duct (Pancreatolithiasis)</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 29 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/VJdnjrAAO-4" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/VJdnjrAAO-4/hqdefault.jpg" alt="Chronic pancreatitis: Wirsung dilatation and parenchymal calcifications video preview">
+    <div class="card-content">
+        <div class="term">Chronic pancreatitis: Wirsung dilatation and parenchymal calcifications</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 26 Oct 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/aoaF345dsKc" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/aoaF345dsKc/hqdefault.jpg" alt="Pancreatic adenocarcinoma (head/uncinate) video preview">
+    <div class="card-content">
+        <div class="term">Pancreatic adenocarcinoma (head/uncinate)</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 13 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Parathyroid'><h2>Parathyroid</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/S45odD2wQOQ" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/S45odD2wQOQ/hqdefault.jpg" alt="Adenoma (primary hyperparathyroidism) video preview">
+    <div class="card-content">
+        <div class="term">Adenoma (primary hyperparathyroidism)</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 04 Nov 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Spleen'><h2>Spleen</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/qushjTAy6XQ " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/qushjTAy6XQ/hqdefault.jpg" alt="Splenic calcification with posterior shadowing video preview">
+    <div class="card-content">
+        <div class="term">Splenic calcification with posterior shadowing</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 13 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/_FckFwJwynI " target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/_FckFwJwynI/hqdefault.jpg" alt="Accessory spleen video preview">
+    <div class="card-content">
+        <div class="term">Accessory spleen</div>
+        <div class="variant">Clip 1 B-mode</div>
+        <div class="date">Published: 22 May 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+
+<div class="card search-item">
+<a href="https://youtu.be/nKZNmbVAutI" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/nKZNmbVAutI/hqdefault.jpg" alt="Splenic artery aneurysm video preview">
+    <div class="card-content">
+        <div class="term">Splenic artery aneurysm</div>
+        <div class="variant">Clip 1 B-mode + Color Doppler</div>
+        <div class="date">Published: 07 Dec 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div><div class='section' data-organ='Thyroid'><h2>Thyroid</h2><div class='grid'>
+<div class="card search-item">
+<a href="https://youtu.be/z_oaRVxRz5s" target="_blank">
+    <img class="thumb" src="https://img.youtube.com/vi/z_oaRVxRz5s/hqdefault.jpg" alt="Isoechoic nodule with peripheral calcifications video preview">
+    <div class="card-content">
+        <div class="term">Isoechoic nodule with peripheral calcifications</div>
+        <div class="variant">Clip 1 B-mode + Color</div>
+        <div class="date">Published: 06 Jun 2025</div>
+        <div class="note"></div>
+    </div>
+</a>
+</div>
+</div></div></div></body></html>
